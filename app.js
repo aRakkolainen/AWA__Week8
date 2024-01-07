@@ -8,7 +8,7 @@ var usersRouter = require('./routes/users');
 
 var app = express();
 const mongoose = require("mongoose");
-//Connecting to mongoDB based on lecture materials:
+//Connecting to mongoDB based on lecture materials from week 5:
 const mongoDB =  "mongodb://127.0.0.1:27017/testdb";
 mongoose.connect(mongoDB);
 mongoose.Promise = Promise; 
