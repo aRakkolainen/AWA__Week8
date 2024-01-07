@@ -51,17 +51,14 @@ router.post("/api/user/login", async function(req, res) {
       bcrypt.compare(req.body.password, user.password, (err, isMatch) => {
         if (err) throw err; 
         if (isMatch) {
-
-          res.json({success: true});
           // Creates the token!
           jwt.sign({
             data: req.body.email, 
             exp: 120
-          }, 'SECRET');
-          (err, token) => {
-            //console.log(token)
-            res.json({success: true, token: token});
-          };
+          }, 'SECRET', (err, token) => {
+            console.log(token)
+            res.json({success: true, token});
+          });
 
         }
       })
