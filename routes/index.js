@@ -1,5 +1,5 @@
 //This code is based on the course material from week 7 in course Advanced Web Applications, not my own code
-
+//How to use findOne: https://mongoosejs.com/docs/api/model.html#Model.findOne() 
 var express = require('express');
 var router = express.Router();
 const bcrypt = require("bcrypt");
@@ -38,7 +38,7 @@ router.post("/api/user/register", async function(req, res) {
 
 })
 // Login with json webtoken is implemented based on course material!
-router.post("/api/user/login", async function(req, res){
+router.post("/api/user/login", async function(req, res) {
   let secret = process.env.SECRET;
 
   // First checking if user with given email exists, in case that req.body is not empty!)
@@ -51,21 +51,18 @@ router.post("/api/user/login", async function(req, res){
       bcrypt.compare(req.body.password, user.password, (err, isMatch) => {
         if (err) throw err; 
         if (isMatch) {
-          const jwtPayload = {
-              id: user._id, 
-              email: user.email
-          }
-          jwt.sign(
-            jwtPayload, 
-            process.env.SECRET,
-            {
-              data: jwtPayload,
-              expiresIn: 120
-            }, 
-            (err, token) => {
-              res.json({success: true, token});
-            }
-          )
+
+          res.json({success: true});
+          // Creates the token!
+          jwt.sign({
+            data: req.body.email, 
+            exp: 120
+          }, 'SECRET');
+          (err, token) => {
+            //console.log(token)
+            res.json({success: true, token: token});
+          };
+
         }
       })
     }
