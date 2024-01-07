@@ -13,7 +13,7 @@ router.get('/', function(req, res, next) {
 });
 //Registering is done here because users.js isn't working for some reason!
 router.post("/api/user/register", async function(req, res) {
-    let StatusNum; 
+    let statusNum; 
     let message; 
     //Checking if email and password were provided with request
     if (req.body.email && req.body.password) {
@@ -37,8 +37,40 @@ router.post("/api/user/register", async function(req, res) {
     }
 
 })
+// Login with json webtoken is implemented based on course material!
+router.post("/api/user/login", async function(req, res){
+  let secret = process.env.SECRET;
 
-router.post("/api/user/login", function(req, res){
+  // First checking if user with given email exists, in case that req.body is not empty!)
+  if (req.body.email && req.body.password) {
+    //Checking whether user already exists
+    let user = await User.findOne({email: req.body.email}).exec(); 
+    if (!user) {
+      res.status(403).json({message: "Login failed!"});
+    } else {
+      bcrypt.compare(req.body.password, user.password, (err, isMatch) => {
+        if (err) throw err; 
+        if (isMatch) {
+          const jwtPayload = {
+              id: user._id, 
+              email: user.email
+          }
+          jwt.sign(
+            jwtPayload, 
+            process.env.SECRET,
+            {
+              data: jwtPayload,
+              expiresIn: 120
+            }, 
+            (err, token) => {
+              res.json({success: true, token});
+            }
+          )
+        }
+      })
+    }
+  }
+    
 
 })
 module.exports = router;
