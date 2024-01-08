@@ -5,7 +5,7 @@ var router = express.Router();
 const bcrypt = require("bcrypt");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
-//const validateToken = require("../auth/validateToken.js");
+const validateToken = require("../auth/validateToken.js");
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -71,5 +71,9 @@ router.post("/api/user/login", async function(req, res) {
   }
     
 
+})
+
+router.get("/api/private", validateToken, (req, res) => {
+  donsole.log("Secret route accessed")
 })
 module.exports = router;
