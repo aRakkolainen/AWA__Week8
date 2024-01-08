@@ -1,9 +1,11 @@
 //This code is based on the course material from week 7 in course Advanced Web Applications, not my own code
-//How to use findOne: https://mongoosejs.com/docs/api/model.html#Model.findOne() 
+//How to use findOne and findOneAndUpdate: https://mongoosejs.com/docs/api/model.html#Model.findOne() 
+// Mongoose array methods are used based on this: https://mongoosejs.com/docs/5.x/docs/api/array.html 
 var express = require('express');
 var router = express.Router();
 const bcrypt = require("bcrypt");
 const User = require("../models/User");
+const Todo = require("../models/Todo");
 const jwt = require("jsonwebtoken");
 const validateToken = require("../auth/validateToken.js");
 const {body, validationResult } = require("express-validator");
@@ -89,6 +91,37 @@ router.post("/api/user/login",
 })
 
 router.get("/api/private", validateToken, (req, res) => {
-  donsole.log("Secret route accessed")
+  res.send({email: req.email})
+})
+
+router.post("/api/todos", validateToken, async (req, res) => {
+  let loggedEmail = req.email;
+  // Finding the userID from database
+  let user = await User.findOne({email: loggedEmail}).exec();
+  // Checking if the user already has some todos
+  const query = {user: user._id};
+  let currentTodos = await Todo.findOne(query).exec(); 
+  if (!currentTodos) {
+    // Creating new todos list
+    let newTodos = new Todo({user: user._id, items: req.body.items});
+    await newTodos.save();
+    res.send("ok")
+  } else {
+    if (!currentTodos.items.includes({items: req.body.items})) {
+      currentTodos.items.addToSet(req.body.items);
+      await currentTodos.save();
+    }
+    // Appending the current todo list
+    /*let currentItems = currentTodos.items;
+    let newItems = req.body.items;
+    req.body.items.forEach(item => async () => {
+      console.log(item)
+      const result = await currentTodos.updateOne({$push: {items: item}});
+    });
+    //const result = await Todo.updateOne(currentTodos, newItems);
+    //console.log(result)*/
+    //console.log(await Todo.findOne(query).exec())
+    res.send("ok")
+  } 
 })
 module.exports = router;
