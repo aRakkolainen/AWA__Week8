@@ -6,17 +6,29 @@ const bcrypt = require("bcrypt");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const validateToken = require("../auth/validateToken.js");
+const {body, validationResult } = require("express-validator");
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 //Registering is done here because users.js isn't working for some reason!
-router.post("/api/user/register", async function(req, res) {
-    let statusNum; 
-    let message; 
-    //Checking if email and password were provided with request
-    if (req.body.email && req.body.password) {
+router.post("/api/user/register", 
+  body("email").isEmail(),
+  body("password").isStrongPassword({
+    minLength: 8,
+    minLowercase: 1,
+    minUppercase: 1, 
+    minNumbers: 1,
+    minSymbols: 1 
+  }),
+  async (req, res) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({errors: errors.array()});
+      }
+      let statusNum; 
+      let message; 
       //Checking whether user already exists
       let user = await User.findOne({email: req.body.email}).exec(); 
       // User with this particular email doesn't exists, adding new one to the database
@@ -27,20 +39,23 @@ router.post("/api/user/register", async function(req, res) {
         await newUser.save(); 
         statusNum = 200; 
         message = "ok"
-    } else {
-      statusNum = 403; 
-      message = {email: "Email already in use"};
-    }
+      } else {
+        statusNum = 403; 
+        message = {email: "Email already in use"};
+      }
       res.status(statusNum).send(message);
-    } else {
-      console.log("Email was not provided!");
-    }
-
-})
+      
+    })
 // Login with json webtoken is implemented based on course material!
-router.post("/api/user/login", async function(req, res) {
-  let secret = process.env.SECRET;
-
+router.post("/api/user/login",  
+  body("email").isEmail(),
+  body("password").isStrongPassword({
+    minLength: 8,
+    minLowercase: 1,
+    minUppercase: 1, 
+    minNumbers: 1,
+    minSymbols: 1 
+  }), async function(req, res) {
   // First checking if user with given email exists, in case that req.body is not empty!)
   if (req.body.email && req.body.password) {
     //Checking whether user already exists
