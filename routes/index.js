@@ -48,6 +48,7 @@ router.post("/api/user/login", async function(req, res) {
     if (!user) {
       res.status(403).json({message: "Login failed!"});
     } else {
+      let secret = process.env.SECRET
       bcrypt.compare(req.body.password, user.password, (err, isMatch) => {
         if (err) throw err; 
         if (isMatch) {
@@ -55,8 +56,7 @@ router.post("/api/user/login", async function(req, res) {
           jwt.sign({
             data: req.body.email, 
             exp: 120
-          }, 'SECRET', (err, token) => {
-            console.log(token)
+          }, secret, (err, token) => {
             res.json({success: true, token});
           });
 
